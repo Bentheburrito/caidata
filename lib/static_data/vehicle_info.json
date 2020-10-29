@@ -1,0 +1,190 @@
+{
+	 "0": {
+		"name": "None",
+		"cost": "0"
+	},
+	 "1": {
+		"name": "Flash",
+		"cost": "50"
+	},
+	 "2": {
+		"name": "Sunderer",
+		"cost": "200"
+	},
+	 "3": {
+		"name": "Lightning",
+		"cost": "350"
+	},
+	 "4": {
+		"name": "Magrider",
+		"cost": "450"
+	},
+	 "5": {
+		"name": "Vanguard",
+		"cost": "450"
+	},
+	 "6": {
+		"name": "Prowler",
+		"cost": "450"
+	},
+	 "7": {
+		"name": "Scythe",
+		"cost": "350"
+	},
+	 "8": {
+		"name": "Reaver",
+		"cost": "350"
+	},
+	 "9": {
+		"name": "Mosquito",
+		"cost": "350"
+	},
+	 "10": {
+		"name": "Liberator",
+		"cost": "450"
+	},
+	 "11": {
+		"name": "Galaxy",
+		"cost": "450"
+	},
+	 "12": {
+		"name": "Harasser",
+		"cost": "150"
+	},
+	 "13": {
+		"name": "Drop Pod",
+		"cost": "0"
+	},
+	 "14": {
+		"name": "Valkyrie",
+		"cost": "250"
+	},
+	 "15": {
+		"name": "ANT",
+		"cost": "200"
+	},
+	 "100": {
+		"name": "Xiphos Anti-Personnel Phalanx Turret",
+		"cost": "0"
+	},
+	 "101": {
+		"name": "MANA Anti-Personnel Turret",
+		"cost": "0"
+	},
+	 "102": {
+		"name": "MANA Anti-Vehicle Turret",
+		"cost": "0"
+	},
+	 "103": {
+		"name": "Spitfire Auto-Turret",
+		"cost": "0"
+	},
+	 "104": {
+		"name": "Spitfire Auto-Turret",
+		"cost": "0"
+	},
+	 "105": {
+		"name": "AA SpitFire Turret",
+		"cost": "0"
+	},
+	 "150": {
+		"name": "Aspis Anti-Aircraft Phalanx Turret",
+		"cost": "0"
+	},
+	 "151": {
+		"name": "Spear Anti-Vehicle Phalanx Turret",
+		"cost": "0"
+	},
+	 "160": {
+		"name": "Spear Anti-Vehicle Tower",
+		"cost": "0"
+	},
+	 "161": {
+		"name": "Aspis Anti-Aircraft Phalanx Tower",
+		"cost": "0"
+	},
+	 "162": {
+		"name": "Xiphos Anti-Personnel Tower",
+		"cost": "0"
+	},
+	 "163": {
+		"name": "Glaive IPC",
+		"cost": "0"
+	},
+	 "1012": {
+		"name": "None.",
+		"cost": "0"
+	},
+	 "1013": {
+		"name": "Recon Drone",
+		"cost": "0"
+	},
+	 "2006": {
+		"name": "Spear Anti-Vehicle Phalanx Turret",
+		"cost": "0"
+	},
+	 "2007": {
+		"name": "Colossus",
+		"cost": "1000000"
+	},
+	 "2008": {
+		"name": "Drop Pod",
+		"cost": "0"
+	},
+	 "2009": {
+		"name": "Xiphos Anti-Personnel Phalanx Turret",
+		"cost": "0"
+	},
+	 "2010": {
+		"name": "Flash",
+		"cost": "50"
+	},
+	 "2011": {
+		"name": "Forward Station",
+		"cost": "0"
+	},
+	 "2019": {
+		"name": "Bastion Fleet Carrier",
+		"cost": "1000000"
+	},
+	 "2021": {
+		"name": "Glaive IPC",
+		"cost": "0"
+	},
+	 "2033": {
+		"name": "Javelin",
+		"cost": "10"
+	},
+	 "2036": {
+		"name": "Pumpkin Patch",
+		"cost": "0"
+	},
+	 "2039": {
+		"name": "Deliverer Prototype",
+		"cost": "0"
+	},
+	 "2040": {
+		"name": "Wasp Prototype",
+		"cost": "0"
+	},
+	 "2122": {
+		"name": "Mosquito Interceptor",
+		"cost": "0"
+	},
+	 "2123": {
+		"name": "Reaver Interceptor",
+		"cost": "0"
+	},
+	 "2124": {
+		"name": "Scythe Interceptor",
+		"cost": "0"
+	},
+	 "2125": {
+		"name": "Javelin",
+		"cost": "100"
+	},
+	 "2128": {
+		"name": "Spitfire Auto-Turret",
+		"cost": "0"
+	}
+}
