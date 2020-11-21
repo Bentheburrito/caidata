@@ -1,4 +1,6 @@
 defmodule CAIData do
+	import Ecto.Query
+
 	@ivi_weapon_ids Jason.decode!(File.read!("./lib/static_data/ivi_weapon_ids.json"))
 	@vehicle_info Jason.decode!(File.read!("./lib/static_data/vehicle_info.json"))
 	@experience_info Jason.decode!(File.read!("./lib/static_data/experience_info.json"))
@@ -35,4 +37,12 @@ defmodule CAIData do
 	def zone_info, do: @zone_info
 	def world_info, do: @world_info
 	def faction_info, do: @faction_info
+
+	def get_session(character_id) do
+		CAIData.Repo.one(from s in CAIData.CharacterSession, select: s, where: s.character_id == ^character_id, limit: 1)
+	end
+
+	def get_all_sessions(character_id) do
+		CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: s.character_id == ^character_id)
+	end
 end

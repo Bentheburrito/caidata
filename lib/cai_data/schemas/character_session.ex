@@ -63,7 +63,7 @@ defmodule CAIData.CharacterSession do
 	def changeset(session, params \\ %{}) do
 		session
 		|> cast(params, @field_list)
-		|> validate_required(List.delete(@field_list, :logout_timestamp))
+		|> validate_required(@field_list |> List.delete(:logout_timestamp) |> List.delete(:name) |> List.delete(:faction_id))
 		|> validate_length(:character_id, max: 19)
 	end
 end

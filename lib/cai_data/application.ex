@@ -6,26 +6,28 @@ defmodule CAIData.Application do
   def start(_type, _args) do
     children = [
       CAIData.Repo,
-      {Phoenix.PubSub, name: :ps2_events},
-      {CAIData.SessionHandler, %{}},
-      {CAIData.EventHandler,
-       [
-         events: [
-           "GainExperience",
-           "Death",
-           "VehicleDestroy",
-           "PlayerLogin",
-           "PlayerLogout",
-           "PlayerFacilityCapture",
-           "PlayerFacilityDefend",
-           "BattleRankUp",
-           "MetagameEvent",
-           "ContinentUnlock",
-           "ContinentLock"
-         ],
-         worlds: ["Connery"],
-         characters: ["all"]
-       ]}
+      { Phoenix.PubSub, name: :ps2_events },
+			{ CAIData.SessionHandler, {%{}, []}},
+			CAIData.WorldState,
+      { CAIData.EventHandler,
+				[
+					events: [
+						"GainExperience",
+						"Death",
+						"VehicleDestroy",
+						"PlayerLogin",
+						"PlayerLogout",
+						"PlayerFacilityCapture",
+						"PlayerFacilityDefend",
+						"BattleRankUp",
+						"MetagameEvent",
+						"ContinentUnlock",
+						"ContinentLock"
+					],
+					worlds: ["all"],
+					characters: ["all"]
+				]
+			}
     ]
 
     opts = [strategy: :one_for_one, name: CAIData.Supervisor]
