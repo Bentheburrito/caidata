@@ -19,6 +19,7 @@ defmodule CAIData.Application do
 						"PlayerLogout",
 						"PlayerFacilityCapture",
 						"PlayerFacilityDefend",
+						"ItemAdded",
 						"BattleRankUp",
 						"MetagameEvent",
 						"ContinentUnlock",

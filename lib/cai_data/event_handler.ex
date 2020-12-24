@@ -3,7 +3,9 @@ defmodule CAIData.EventHandler do
 	require Logger
 
 	import Ecto.Query
+	import PS2.API.QueryBuilder
 
+	alias PS2.API.{Query, Join}
 	alias CAIData.Repo
 	alias CAIData.CharacterSession
 	alias CAIData.SessionHandler
@@ -16,7 +18,7 @@ defmodule CAIData.EventHandler do
 	# PS2 Events
 	def handle_event({_event, %{"character_id" => "0"}}), do: nil
 
-	def handle_event({"GainExperience", %{"character_id" => character_id, "amount" => xp_amount, "experience_id" => xp_id}}) do
+	def handle_event({"GainExperience", %{"character_id" => character_id, "amount" => xp_amount, "experience_id" => xp_id} = payload}) do
 		case SessionHandler.get(character_id) do
 			{:ok, %CharacterSession{xp_types: %{^xp_id => old_xp} = xp_types} = session} ->
 				xp = String.to_integer(xp_amount)
@@ -27,6 +29,9 @@ defmodule CAIData.EventHandler do
 				CharacterSession.changeset(session, %{xp_earned: session.xp_earned + xp, xp_types: Map.put(xp_types, xp_id, xp)})
 				|> SessionHandler.update()
 			_ -> nil
+		end
+		if xp_id == "1520" do
+			CAIData.WorldState.damage_bastion(payload["world_id"], payload["zone_id"], payload["other_id"])
 		end
 	end
 
@@ -68,13 +73,21 @@ defmodule CAIData.EventHandler do
 		with {:ok, vehicle} <- Map.fetch(CAIData.vehicle_info, attacker_vehicle_id) do
 			case SessionHandler.get(character_id) do
 				{:ok, %CharacterSession{vehicles_lost: vehicles_lost} = session} ->
-					CharacterSession.changeset(session, %{vehicles_lost: Map.update(vehicles_lost, vehicle["name"], 1, &(&1 + 1)), nanites_lost: session.nanites_lost + String.to_integer(vehicle["cost"]), vehicle_deaths: session.vehicle_deaths + 1})
+					CharacterSession.changeset(session, %{
+						vehicles_lost: Map.update(vehicles_lost, vehicle["name"], 1, &(&1 + 1)),
+						nanites_lost: session.nanites_lost + String.to_integer(vehicle["cost"]),
+						vehicle_deaths: session.vehicle_deaths + 1
+					})
 					|> SessionHandler.update()
 				_ -> nil
 			end
 			case SessionHandler.get(attacker_id) do
 				{:ok, %CharacterSession{vehicles_destroyed: vehicles_destroyed} = session} when attacker_id != character_id ->
-					CharacterSession.changeset(session, %{vehicles_destroyed: Map.update(vehicles_destroyed, vehicle["name"], 1, &(&1 + 1)), nanites_destroyed: session.nanites_destroyed + String.to_integer(vehicle["cost"]), vehicle_kills: session.vehicle_kills + 1})
+					CharacterSession.changeset(session, %{
+						vehicles_destroyed: Map.update(vehicles_destroyed, vehicle["name"], 1, &(&1 + 1)),
+						nanites_destroyed: session.nanites_destroyed + String.to_integer(vehicle["cost"]),
+						vehicle_kills: session.vehicle_kills + 1
+					})
 					|> SessionHandler.update()
 				_ -> nil
 			end
@@ -100,7 +113,12 @@ defmodule CAIData.EventHandler do
 	end
 
 	# def handle_event({"FacilityControl", payload}), do: nil
-	# def handle_event({"ItemAdded", payload}), do: nil
+	def handle_event({"ItemAdded", %{"context" => "GenericTerminalTransaction", "item_id" => "6008912", "character_id" => character_id, "world_id" => world_id, "zone_id" => zone_id}}) do
+		character_query = Query.new(collection: "single_character_by_id") |> term("character_id", character_id) |> show(["character_id", "faction_id"]) |> join(Join.new(collection: "outfit") |> show(["outfit_id", "alias"]))
+		with {:ok, %{"faction_id" => faction_id, "alias" => outfit_alias}} <- PS2.API.send_query(character_query) do
+			CAIData.WorldState.put_bastion(world_id, zone_id, faction_id, outfit_alias)
+		end
+	end
 	# def handle_event({"SkillAdded", payload}), do: nil
 	# def handle_event({"AchievementEarned", payload}), do: nil
 	def handle_event({"BattleRankUp", %{"character_id" => character_id, "battle_rank" => br}}) do

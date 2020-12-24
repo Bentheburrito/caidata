@@ -135,7 +135,7 @@ defmodule CAIData.SessionHandler do
 				params = %{"name" => name, "faction_id" => faction_id, "shots_fired" => fire_count, "shots_hit" => hit_count}
 				changeset = CharacterSession.changeset(Map.get(session_map, character_id), params)
 				if changeset.valid? do
-					CAIData.WorldState.add_world_pop(world_id, faction_id, 1)
+					CAIData.WorldState.add_population(world_id, faction_id, 1)
 					session = Changeset.apply_changes(changeset)
 					Map.put(sessions, character_id, session)
 				else
