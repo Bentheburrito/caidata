@@ -96,11 +96,12 @@ defmodule CAIData.SessionHandler do
 		{:noreply, {new_session_map, pending_ids ++ remaining_pending_ids}}
 	end
 
-	# Handle archiving sessions
+	# Handle unarchived sessions
 	def handle_info({:archive_old_sessions, :start}, state) do
 		Task.start(fn ->
 			unarchived_sessions = CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: s.archived == false, limit: 350)
 			{char_list, _remaining_pending_ids} = fetch_char_list(Enum.map(unarchived_sessions, &(&1.character_id)))
+
 			# Data checks: body.returned should equal rows.length. If not, find char IDs that are missing from the Census, and remove them from DB (js behavior) OR just set them as archived.
 			send(__MODULE__, {:archive_old_sessions, :end, {char_list, unarchived_sessions}})
 		end)
@@ -110,21 +111,17 @@ defmodule CAIData.SessionHandler do
 	def handle_info({:archive_old_sessions, :end, {char_list, unarchived_sessions}}, {session_map, pending_ids}) do
 
 		Enum.each(unarchived_sessions, fn %CharacterSession{} = session ->
-			with {:ok, character} <- Enum.find(char_list, &(&1["character_id"] == session.character_id))
+			with character when not is_nil(character) <- Enum.find(char_list, &(&1["character_id"] == session.character_id))
 			do
 				{end_fire_count, end_hit_count} = count_weapon_stats(Map.get(character, "weapon_shot_stats", %{}))
 
-				if session.shots_fired < end_fire_count or DateTime.utc_now() |> DateTime.to_unix() < session.logout_timestamp + @max_time_unarchived do
+				if session.shots_fired < end_fire_count or DateTime.utc_now() |> DateTime.to_unix() > session.logout_timestamp + @max_time_unarchived do
 					params = %{"shots_fired" => end_fire_count - session.shots_fired, "shots_hit" => end_hit_count - session.shots_hit, "archived" => true}
 					changeset = CharacterSession.changeset(session, params)
 					CAIData.Repo.update(changeset)
 				end
 			end
 		end)
-
-		# For each session, if session.shotsFired (the character's shotsFired at the beginning of the session)
-		# is equal to character.weapon_shot_stats.weapon_fire_count, continue waiting. Otherwise, update the session
-		# shotsFired (character.weapon_shot_stats.weapon_fire_count - session.shotsFired), and archive the session.
 
 		schedule_work(:archive_sessions)
 		{:noreply, {session_map, pending_ids}}
@@ -194,7 +191,7 @@ defmodule CAIData.SessionHandler do
 	end
 
 	defp schedule_work(:new_sessions), do: Process.send_after(self(), {:fetch_new_sessions, :start}, 15 * 1000) # Every 15 seconds.
-	defp schedule_work(:archive_sessions), do: Process.send_after(self(), {:archive_old_sessions, :start}, 60 * 1000) # Every 60 seconds.
+	defp schedule_work(:archive_sessions), do: Process.send_after(self(), {:archive_old_sessions, :start}, 15 * 1000) # (15 seconds for testing) Every 60 seconds.
 	defp schedule_work() do
 		schedule_work(:new_sessions)
 		schedule_work(:archive_sessions)
