@@ -2,12 +2,15 @@ defmodule CAIData.SessionHandler do
 	use GenServer
 	require Logger
 
+	import Ecto.Query
 	import PS2.API.QueryBuilder
 
 	alias PS2.API.{Query, Join}
 	alias Ecto.Changeset
 	alias CAIData.CharacterSession
 	alias CAIData.Repo
+
+	@max_time_unarchived 3600
 
 	# Client
 	def start_link(init_state) do
@@ -75,8 +78,9 @@ defmodule CAIData.SessionHandler do
 		{:noreply, {Map.delete(session_map, character_id), List.delete(pending_ids, character_id)}}
 	end
 
+	# Handle new sessions
 	def handle_info({:fetch_new_sessions, :start}, {_session_map, queue} = state) when queue == [] do
-		schedule_work()
+		schedule_work(:new_sessions)
 		{:noreply, state}
 	end
 	def handle_info({:fetch_new_sessions, :start}, {session_map, pending_ids}) do
@@ -88,15 +92,49 @@ defmodule CAIData.SessionHandler do
 	end
 	def handle_info({:fetch_new_sessions, :end, {char_list, remaining_pending_ids}}, {session_map, pending_ids}) do
 		new_session_map = char_list_to_sessions(char_list, session_map)
-		schedule_work()
+		schedule_work(:new_sessions)
 		{:noreply, {new_session_map, pending_ids ++ remaining_pending_ids}}
 	end
 
-	# Still need to check if some character's are missing (in the case of new characters)
+	# Handle archiving sessions
+	def handle_info({:archive_old_sessions, :start}, state) do
+		Task.start(fn ->
+			unarchived_sessions = CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: s.archived == false, limit: 350)
+			{char_list, _remaining_pending_ids} = fetch_char_list(Enum.map(unarchived_sessions, &(&1.character_id)))
+			# Data checks: body.returned should equal rows.length. If not, find char IDs that are missing from the Census, and remove them from DB (js behavior) OR just set them as archived.
+			send(__MODULE__, {:archive_old_sessions, :end, {char_list, unarchived_sessions}})
+		end)
+
+		{:noreply, state}
+	end
+	def handle_info({:archive_old_sessions, :end, {char_list, unarchived_sessions}}, {session_map, pending_ids}) do
+
+		Enum.each(unarchived_sessions, fn %CharacterSession{} = session ->
+			with {:ok, character} <- Enum.find(char_list, &(&1["character_id"] == session.character_id))
+			do
+				{end_fire_count, end_hit_count} = count_weapon_stats(Map.get(character, "weapon_shot_stats", %{}))
+
+				if session.shots_fired < end_fire_count or DateTime.utc_now() |> DateTime.to_unix() < session.logout_timestamp + @max_time_unarchived do
+					params = %{"shots_fired" => end_fire_count - session.shots_fired, "shots_hit" => end_hit_count - session.shots_hit, "archived" => true}
+					changeset = CharacterSession.changeset(session, params)
+					CAIData.Repo.update(changeset)
+				end
+			end
+		end)
+
+		# For each session, if session.shotsFired (the character's shotsFired at the beginning of the session)
+		# is equal to character.weapon_shot_stats.weapon_fire_count, continue waiting. Otherwise, update the session
+		# shotsFired (character.weapon_shot_stats.weapon_fire_count - session.shotsFired), and archive the session.
+
+		schedule_work(:archive_sessions)
+		{:noreply, {session_map, pending_ids}}
+	end
+
+	# Still need to check if some characters are missing (in the case of new characters)
 	defp fetch_char_list(character_ids) do
 		char_query = Query.new(collection: "character")
 			|> term("character_id", Enum.join(character_ids, ","))
-			|> show(["character_id", "faction_id", "name"])
+			|> show(["character_id", "faction_id", "name", "times.last_save"])
 			|> join(Join.new(collection: "characters_world")
 				|> inject_at("world")
 				|> show("world_id")
@@ -155,7 +193,10 @@ defmodule CAIData.SessionHandler do
 		end)
 	end
 
+	defp schedule_work(:new_sessions), do: Process.send_after(self(), {:fetch_new_sessions, :start}, 15 * 1000) # Every 15 seconds.
+	defp schedule_work(:archive_sessions), do: Process.send_after(self(), {:archive_old_sessions, :start}, 60 * 1000) # Every 60 seconds.
 	defp schedule_work() do
-		Process.send_after(self(), {:fetch_new_sessions, :start}, 15 * 1000) # Every 15 seconds.
+		schedule_work(:new_sessions)
+		schedule_work(:archive_sessions)
 	end
 end

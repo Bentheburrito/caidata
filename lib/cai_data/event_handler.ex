@@ -20,13 +20,9 @@ defmodule CAIData.EventHandler do
 
 	def handle_event({"GainExperience", %{"character_id" => character_id, "amount" => xp_amount, "experience_id" => xp_id} = payload}) do
 		case SessionHandler.get(character_id) do
-			{:ok, %CharacterSession{xp_types: %{^xp_id => old_xp} = xp_types} = session} ->
-				xp = String.to_integer(xp_amount)
-				CharacterSession.changeset(session, %{xp_earned: session.xp_earned + xp, xp_types: Map.put(xp_types, xp_id, old_xp + xp)})
-				|> SessionHandler.update()
 			{:ok, %CharacterSession{xp_types: xp_types} = session} ->
 				xp = String.to_integer(xp_amount)
-				CharacterSession.changeset(session, %{xp_earned: session.xp_earned + xp, xp_types: Map.put(xp_types, xp_id, xp)})
+				CharacterSession.changeset(session, %{xp_earned: session.xp_earned + xp, xp_types: Map.update(xp_types, xp_id, xp, & &1 + xp)})
 				|> SessionHandler.update()
 			_ -> nil
 		end

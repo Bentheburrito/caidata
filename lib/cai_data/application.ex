@@ -28,7 +28,8 @@ defmodule CAIData.Application do
 					worlds: ["all"],
 					characters: ["all"]
 				]
-			}
+			},
+			{Task.Supervisor, name: CAIData.DataTasks}
     ]
 
     opts = [strategy: :one_for_one, name: CAIData.Supervisor]

@@ -5,6 +5,7 @@ defmodule CAIData do
 	@vehicle_info Jason.decode!(File.read!("./lib/static_data/vehicle_info.json"))
 	@experience_info Jason.decode!(File.read!("./lib/static_data/experience_info.json"))
 	@event_info Jason.decode!(File.read!("./lib/static_data/event_info.json"))
+	@weapon_info Jason.decode!(File.read!("./lib/static_data/weapon_info.json"))
 	@zone_info %{
 		"2" => "Indar",
 		"4" => "Hossin",
@@ -34,15 +35,24 @@ defmodule CAIData do
 	def vehicle_info, do: @vehicle_info
 	def experience_info, do: @experience_info
 	def event_info, do: @event_info
+	def weapon_info, do: @weapon_info
 	def zone_info, do: @zone_info
 	def world_info, do: @world_info
 	def faction_info, do: @faction_info
 
 	def get_session(character_id) do
-		CAIData.Repo.one(from s in CAIData.CharacterSession, select: s, where: s.character_id == ^character_id, limit: 1)
+		CAIData.Repo.one(from s in CAIData.CharacterSession, select: s, where: ilike(s.character_id, ^character_id), limit: 1)
+	end
+
+	def get_session_by_name(character_name) do
+		CAIData.Repo.one(from s in CAIData.CharacterSession, select: s, where: ilike(s.name, ^character_name), limit: 1)
 	end
 
 	def get_all_sessions(character_id) do
-		CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: s.character_id == ^character_id)
+		CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: ilike(s.character_id, ^character_id))
+	end
+
+	def get_active_session(character_id) do
+		CAIData.SessionHandler.get(character_id)
 	end
 end
