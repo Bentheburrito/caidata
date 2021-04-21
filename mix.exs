@@ -24,7 +24,7 @@ defmodule CAIData.MixProject do
     [
       {:ecto_sql, "~> 3.0"},
 			{:postgrex, ">= 0.0.0"},
-			{:planetside_api, "~> 0.1.3"},
+			{:planetside_api, "~> 0.2.0"},
 			{:phoenix_pubsub, "~> 2.0"}
     ]
   end

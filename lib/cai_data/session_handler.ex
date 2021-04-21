@@ -5,12 +5,13 @@ defmodule CAIData.SessionHandler do
 	import Ecto.Query
 	import PS2.API.QueryBuilder
 
-	alias PS2.API.{Query, Join}
+	alias PS2.API.{Query, Join, QueryResult}
 	alias Ecto.Changeset
 	alias CAIData.CharacterSession
 	alias CAIData.Repo
 
 	@max_time_unarchived 3600
+	@max_ids_to_fetch 200
 
 	# Client
 	def start_link(init_state) do
@@ -84,11 +85,12 @@ defmodule CAIData.SessionHandler do
 		{:noreply, state}
 	end
 	def handle_info({:fetch_new_sessions, :start}, {session_map, pending_ids}) do
+		{to_fetch, remaining_ids} = Enum.split(pending_ids, @max_ids_to_fetch)
 		Task.start(fn ->
-			result = fetch_char_list(pending_ids)
+			result = fetch_char_list(to_fetch)
 			send(__MODULE__, {:fetch_new_sessions, :end, result})
 		end)
-		{:noreply, {session_map, []}}
+		{:noreply, {session_map, remaining_ids}}
 	end
 	def handle_info({:fetch_new_sessions, :end, {char_list, remaining_pending_ids}}, {session_map, pending_ids}) do
 		new_session_map = char_list_to_sessions(char_list, session_map)
@@ -99,7 +101,7 @@ defmodule CAIData.SessionHandler do
 	# Handle unarchived sessions
 	def handle_info({:archive_old_sessions, :start}, state) do
 		Task.start(fn ->
-			unarchived_sessions = CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: s.archived == false, limit: 350)
+			unarchived_sessions = CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: s.archived == false, limit: @max_ids_to_fetch)
 			{char_list, _remaining_pending_ids} = fetch_char_list(Enum.map(unarchived_sessions, &(&1.character_id)))
 
 			# Data checks: body.returned should equal rows.length. If not, find char IDs that are missing from the Census, and remove them from DB (js behavior) OR just set them as archived.
@@ -148,8 +150,9 @@ defmodule CAIData.SessionHandler do
 					|> term("item_category_id", ["3", "5", "6", "7", "8", "12", "19", "24", "100", "102"])
 				)
 			)
-		case PS2.API.send_query(char_query) do
-			{:ok, %{"character_list" => char_list}} ->
+			IO.inspect(to_string(char_query), printable_limit: :infinity)
+		case PS2.API.query(char_query) do
+			{:ok, %QueryResult{data: char_list}} ->
 				{char_list, []}
 			{:error, error} -> # Likely a timeout or other random error from the API.
 				Logger.error(inspect(error))

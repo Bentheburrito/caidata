@@ -5,7 +5,7 @@ defmodule CAIData.EventHandler do
 	import Ecto.Query
 	import PS2.API.QueryBuilder
 
-	alias PS2.API.{Query, Join}
+	alias PS2.API.{Query, Join, QueryResult}
 	alias CAIData.Repo
 	alias CAIData.CharacterSession
 	alias CAIData.SessionHandler
@@ -111,7 +111,7 @@ defmodule CAIData.EventHandler do
 	# def handle_event({"FacilityControl", payload}), do: nil
 	def handle_event({"ItemAdded", %{"context" => "GenericTerminalTransaction", "item_id" => "6008912", "character_id" => character_id, "world_id" => world_id, "zone_id" => zone_id}}) do
 		character_query = Query.new(collection: "single_character_by_id") |> term("character_id", character_id) |> show(["character_id", "faction_id"]) |> join(Join.new(collection: "outfit") |> show(["outfit_id", "alias"]))
-		with {:ok, %{"faction_id" => faction_id, "alias" => outfit_alias}} <- PS2.API.send_query(character_query) do
+		with {:ok, %QueryResult{data: %{"faction_id" => faction_id, "alias" => outfit_alias}}} <- PS2.API.query_one(character_query) do
 			CAIData.WorldState.put_bastion(world_id, zone_id, faction_id, outfit_alias)
 		end
 	end
