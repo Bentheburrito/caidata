@@ -11,7 +11,7 @@ defmodule CAIData.SessionHandler do
 	alias CAIData.Repo
 
 	@max_time_unarchived 3600
-	@max_ids_to_fetch 200
+	@max_ids_to_fetch 350
 
 	# Client
 	def start_link(init_state) do
@@ -150,7 +150,7 @@ defmodule CAIData.SessionHandler do
 					|> term("item_category_id", ["3", "5", "6", "7", "8", "12", "19", "24", "100", "102"])
 				)
 			)
-			IO.inspect(to_string(char_query), printable_limit: :infinity)
+
 		case PS2.API.query(char_query) do
 			{:ok, %QueryResult{data: char_list}} ->
 				{char_list, []}

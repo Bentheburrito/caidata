@@ -23,6 +23,7 @@ defmodule CAIData.MixProject do
   defp deps do
     [
       {:ecto_sql, "~> 3.0"},
+			{:dotenv_parser, "~> 1.2"},
 			{:postgrex, ">= 0.0.0"},
 			{:planetside_api, "~> 0.2.0"},
 			{:phoenix_pubsub, "~> 2.0"}
