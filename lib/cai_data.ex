@@ -48,11 +48,16 @@ defmodule CAIData do
 		CAIData.Repo.one(from s in CAIData.CharacterSession, select: s, where: ilike(s.name, ^character_name), limit: 1)
 	end
 
+	def get_active_session(character_id) do
+		CAIData.SessionHandler.get(character_id)
+	end
+
+	def get_active_session_by_name(character_name) do
+		CAIData.SessionHandler.get_by(:name, character_name)
+	end
+
 	def get_all_sessions(character_id) do
 		CAIData.Repo.all(from s in CAIData.CharacterSession, select: s, where: ilike(s.character_id, ^character_id))
 	end
 
-	def get_active_session(character_id) do
-		CAIData.SessionHandler.get(character_id)
-	end
 end

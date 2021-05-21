@@ -2,35 +2,6 @@ defmodule CAIData.CharacterSession do
 	use Ecto.Schema
 	import Ecto.Changeset
 
-	@field_list [
-		:character_id,
-		:faction_id,
-		:name,
-		:kills,
-		:kills_hs,
-		:kills_ivi,
-		:kills_hs_ivi,
-		:deaths,
-		:deaths_ivi,
-		:shots_fired,
-		:shots_hit,
-		:vehicle_kills,
-		:vehicle_deaths,
-		:vehicle_bails,
-		:vehicles_destroyed,
-		:vehicles_lost,
-		:nanites_destroyed,
-		:nanites_lost,
-		:xp_earned,
-		:xp_types,
-		:br_ups,
-		:base_captures,
-		:base_defends,
-		:login_timestamp,
-		:logout_timestamp,
-		:archived
-	]
-
   schema "character_sessions" do
     field :character_id, :string
 		field :faction_id, :integer
@@ -61,9 +32,11 @@ defmodule CAIData.CharacterSession do
 	end
 
 	def changeset(session, params \\ %{}) do
+		field_list = __MODULE__.__schema__(:fields) |> List.delete(:id)
+
 		session
-		|> cast(params, @field_list)
-		|> validate_required(@field_list |> List.delete(:logout_timestamp) |> List.delete(:name) |> List.delete(:faction_id))
+		|> cast(params, field_list)
+		|> validate_required(field_list |> List.delete(:logout_timestamp) |> List.delete(:name) |> List.delete(:faction_id))
 		|> validate_length(:character_id, max: 19)
 	end
 end

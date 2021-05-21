@@ -22,6 +22,10 @@ defmodule CAIData.SessionHandler do
 		GenServer.call(__MODULE__, {:get, character_id})
 	end
 
+	def get_by(field, value) do
+		GenServer.call(__MODULE__, {:get_by, field, value})
+	end
+
 	def put(character_id, login_timestamp) do
 		changeset = CharacterSession.changeset(%CharacterSession{}, %{character_id: character_id, login_timestamp: login_timestamp})
 		if changeset.valid? do
@@ -55,6 +59,13 @@ defmodule CAIData.SessionHandler do
 		case Map.fetch(session_map, character_id) do
 			{:ok, session} -> {:reply, {:ok, session}, {session_map, pending_ids}}
 			:error -> {:reply, :none, {session_map, pending_ids}}
+		end
+	end
+
+	def handle_call({:get_by, field, value}, _from, {session_map, pending_ids}) do
+		case Enum.find(session_map, &(Map.get(elem(&1, 1), field) == value)) do
+			nil -> {:reply, :none, {session_map, pending_ids}}
+			{_id, session} -> {:reply, {:ok, session}, {session_map, pending_ids}}
 		end
 	end
 
