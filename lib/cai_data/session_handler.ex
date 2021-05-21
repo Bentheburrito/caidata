@@ -62,6 +62,13 @@ defmodule CAIData.SessionHandler do
 		end
 	end
 
+	def handle_call({:get_by, field, value}, _from, {session_map, pending_ids}) when is_binary(value) do
+		case find_session_by_string_value(session_map, field, value) do
+			nil -> {:reply, :none, {session_map, pending_ids}}
+			{_id, session} -> {:reply, {:ok, session}, {session_map, pending_ids}}
+		end
+	end
+
 	def handle_call({:get_by, field, value}, _from, {session_map, pending_ids}) do
 		case Enum.find(session_map, &(Map.get(elem(&1, 1), field) == value)) do
 			nil -> {:reply, :none, {session_map, pending_ids}}
@@ -209,5 +216,16 @@ defmodule CAIData.SessionHandler do
 	defp schedule_work() do
 		schedule_work(:new_sessions)
 		schedule_work(:archive_sessions)
+	end
+
+	defp find_session_by_string_value(session_map, field, value) when is_binary(value) do
+		Enum.find(session_map, fn {_id, session} ->
+			field_val = Map.get(session, field)
+			if is_binary(field_val) do
+				String.downcase(field_val) == String.downcase(value)
+			else
+				false
+			end
+		end)
 	end
 end
