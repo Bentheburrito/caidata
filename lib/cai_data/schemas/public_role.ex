@@ -3,7 +3,7 @@ defmodule CAIData.PublicRole do
   import Ecto.Changeset
 
   schema "public_roles" do
-    field(:role_id, :string)
+    field :role_id, :string
   end
 
   def changeset(public_role, params \\ %{}) do

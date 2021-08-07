@@ -3,11 +3,11 @@ defmodule CAIData.UnlockSubscription do
   import Ecto.Changeset
 
   schema "unlock_subscriptions" do
-    field(:user_id, :string)
-    field(:world_ids, {:array, :integer})
-    field(:zone_ids, {:array, :integer})
-    field(:notify_bound_lower, :utc_datetime)
-    field(:notify_bound_upper, :utc_datetime)
+    field :user_id, :string
+    field :world_ids, {:array, :integer}
+    field :zone_ids, {:array, :integer}
+    field :notify_bound_lower, :utc_datetime
+    field :notify_bound_upper, :utc_datetime
   end
 
   def changeset(subscription, params \\ %{}) do

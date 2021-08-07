@@ -3,8 +3,8 @@ defmodule CAIData.GuildInfo do
   import Ecto.Changeset
 
   schema "guild_info" do
-    field(:guild_id, :string)
-    field(:status_message_id, :string)
+    field :guild_id, :string
+    field :status_message_id, :string
   end
 
   def changeset(guild_info, params \\ %{}) do

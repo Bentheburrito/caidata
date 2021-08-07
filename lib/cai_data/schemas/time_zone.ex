@@ -3,9 +3,9 @@ defmodule CAIData.TimeZone do
   import Ecto.Changeset
 
   schema "time_zones" do
-    field(:user_id, :string)
-    field(:time_zone, :string)
-    field(:is_public, :boolean, default: false)
+    field :user_id, :string
+    field :time_zone, :string
+    field :is_public, :boolean, default: false
   end
 
   def changeset(time_zone, params \\ %{}) do
