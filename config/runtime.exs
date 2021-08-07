@@ -11,7 +11,6 @@ config :caidata, CAIData.Repo,
   hostname: System.get_env("DB_HOST")
 
 config :caidata,
-	ecto_repos: [CAIData.Repo]
-
+  ecto_repos: [CAIData.Repo]
 
 config :planetside_api, service_id: System.get_env("SERVICE_ID")
